@@ -272,11 +272,11 @@ export default function RetroTVScreen() {
 
       const fetchPromises = pendingWatchlist.map((item) =>
         fetch(`/api/tmdb/${item.mediaType}/${item.id}?append_to_response=watch/providers`)
-          .then((res) => res.json())
+          .then((res) => res.ok ? res.json() : null)
           .then((data) => ({ item, data }))
+          .catch(() => ({ item, data: null }))
       );
-
-      const results = await Promise.all(fetchPromises);
+      const results = await Promise.all(fetchPromises).then((r) => r.filter((x) => x.data !== null));
 
       results.forEach(({ item, data }) => {
         let itemRuntime = 0;

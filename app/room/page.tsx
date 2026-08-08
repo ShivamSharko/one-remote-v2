@@ -44,6 +44,7 @@ export default function RoomPage() {
   }, []);
   const teleportRef = useRef<any>({ active: false, t: 1 });
   const computing = useRef(false);
+  const hasComputed = useRef(false);
   const tvBoxRef = useRef<HTMLDivElement | null>(null);
   const tvInnerRef = useRef<HTMLDivElement | null>(null);
   const [flight, setFlight] = useState<any>(null);
@@ -53,23 +54,27 @@ export default function RoomPage() {
   const [lights, setLights] = useState<any>({ lamp: true, shelf: true, board: true, tv: true, posters: true });
   const toggleLight = (k: string) => setLights((s: any) => ({ ...s, [k]: !s[k] }));
 
+  const timeoutRefs = useRef<{ zoom?: NodeJS.Timeout; list?: NodeJS.Timeout }>({});
   const openPaper = (plat: any, rank: number, rect: any, imgUrl: string) => {
     setFlight({ plat, rank, rect, imgUrl });
     setClosing(false);
     setZoomed(false);
     setShowList(false);
-    setTimeout(() => setZoomed(true), 30);
-    setTimeout(() => setShowList(true), 620);
+    timeoutRefs.current.zoom = setTimeout(() => setZoomed(true), 30);
+    timeoutRefs.current.list = setTimeout(() => setShowList(true), 620);
   };
   const closePaper = () => {
     setShowList(false);
     setClosing(true);
     setZoomed(false);
+    if (timeoutRefs.current.zoom) clearTimeout(timeoutRefs.current.zoom);
+    if (timeoutRefs.current.list) clearTimeout(timeoutRefs.current.list);
     setTimeout(() => { setFlight(null); setClosing(false); }, 600);
   };
 
   useEffect(() => {
     setMounted(true);
+    const prevScrollRestoration = ("scrollRestoration" in window.history) ? window.history.scrollRestoration : "auto";
     if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
     try {
@@ -77,7 +82,7 @@ export default function RoomPage() {
       if (saved) setWatchlist(JSON.parse(saved));
     } catch (e) { console.warn("Storage blocked"); }
     const hs = document.documentElement.style, bs = document.body.style;
-    const prev = { h: hs.height, o: hs.overflow, bh: bs.height, bo: bs.overflow };
+    const prev = { h: hs.height, o: hs.overflow, ox: hs.overflowX, oy: hs.overflowY, bh: bs.height, bo: bs.overflow, box: bs.overflowX, boy: bs.overflowY };
     hs.height = "auto"; hs.overflowY = "auto"; hs.overflowX = "hidden"; bs.height = "auto"; bs.overflowY = "auto"; bs.overflowX = "hidden";
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -89,8 +94,9 @@ export default function RoomPage() {
     onScroll();
     return () => {
       window.removeEventListener("scroll", onScroll);
-      Object.assign(hs, { height: prev.h, overflow: prev.o });
-      Object.assign(bs, { height: prev.bh, overflow: prev.bo });
+      Object.assign(hs, { height: prev.h, overflow: prev.o, overflowX: prev.ox, overflowY: prev.oy });
+      Object.assign(bs, { height: prev.bh, overflow: prev.bo, overflowX: prev.box, overflowY: prev.boy });
+      if ("scrollRestoration" in window.history) window.history.scrollRestoration = prevScrollRestoration as any;
     };
   }, []);
 
@@ -118,7 +124,7 @@ export default function RoomPage() {
 
   const atBoard = progress > 0.8;
   useEffect(() => {
-    if (!atBoard || computing.current) return;
+    if (!atBoard || computing.current || hasComputed.current) return;
     const pending = watchlist.filter((w) => !w.completed);
     if (pending.length === 0) { setRanked([]); return; }
     computing.current = true;
@@ -149,6 +155,7 @@ export default function RoomPage() {
       const arr = Object.values(scores).sort((a: any, b: any) => b.count - a.count || b.totalMinutes - a.totalMinutes);
       setRanked(arr as any[]);
       computing.current = false;
+      hasComputed.current = true;
     })();
   }, [atBoard, watchlist, region]);
 

@@ -59,15 +59,16 @@ export function CRTOverlay({ boxRef, innerRef, watchlist, onAdd, onRemove, regio
 
   useEffect(() => {
     if (inputValue.trim().length < 2) { setSearchResults([]); setApiError(""); return; }
-    const t = setTimeout(async () => {
+        const controller = new AbortController();
+    const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(inputValue)}&include_adult=false`);
+        const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(inputValue)}&include_adult=false`, { signal: controller.signal });
         const data = await res.json();
         setApiError("");
         setSearchResults((data.results || []).filter((r: any) => r.media_type === "movie" || r.media_type === "tv").slice(0, 5));
       } catch { setApiError("NETWORK ERROR"); }
     }, 300);
-    return () => clearTimeout(t);
+    return () => { clearTimeout(timer); controller.abort(); };
   }, [inputValue]);
 
   const calculate = async () => {
