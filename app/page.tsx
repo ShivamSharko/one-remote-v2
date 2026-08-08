@@ -199,9 +199,10 @@ export default function RetroTVScreen() {
       return;
     }
 
+    const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(inputValue)}&include_adult=false`);
+        const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(inputValue)}&include_adult=false`, { signal: controller.signal });
 
         if (!res.ok) {
           setApiError("INVALID API KEY OR LIMIT");
@@ -223,7 +224,7 @@ export default function RetroTVScreen() {
       }
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); try { controller.abort(); } catch {} };
   }, [inputValue]);
 
   // --- HANDLERS ---
