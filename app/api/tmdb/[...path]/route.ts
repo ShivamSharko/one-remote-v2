@@ -9,14 +9,13 @@ export async function GET(req: NextRequest, ctx: any) {
   const referer = req.headers.get("referer");
   const host = (req.headers.get("host") || "").split(":")[0];
 
-  // Block if origin is present but wrong
-  if (origin && !origin.includes(host)) {
+  // Block only when BOTH origin and referer are missing or wrong
+  const originOk = origin ? origin.includes(host) : false;
+  const refererOk = referer ? referer.includes(host) : false;
+  if (!originOk && !refererOk) {
     return NextResponse.json({ error: "blocked" }, { status: 403 });
   }
-  // Block if no origin, but referer is present and wrong
-  if (!origin && referer && !referer.includes(host)) {
-    return NextResponse.json({ error: "blocked" }, { status: 403 });
-  }
+  
   // 2) Rate limit: 60 requests/minute per visitor
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "anon";
   const now = Date.now();

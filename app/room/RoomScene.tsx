@@ -249,14 +249,19 @@ function WindowWithView({ position, override }: any) {
     return () => clearInterval(id);
   }, []);
   const phase = override && override !== "auto" ? override : real;
-  const tex = useMemo(() => skyTexture(phase), [phase]);
+  const [tex, setTex] = useState<THREE.Texture | null>(null);
+  useEffect(() => {
+    const t = skyTexture(phase);
+    setTex(t);
+    return () => { t.dispose(); };
+  }, [phase]);
   const light = phase === "day" ? "#fff2cf" : phase === "dawn" ? "#ffbe73" : phase === "sunset" ? "#ff9d4d" : "#7ea8ff";
   const intensity = phase === "night" ? 1.8 : phase === "day" ? 5.5 : phase === "dawn" ? 7 : 3.5;
   return (
     <group position={position}>
       <mesh key={phase} position={[0, 0, 0]}>
         <planeGeometry args={[1.1, 1.1]} />
-        <meshBasicMaterial map={tex} toneMapped={false} />
+        <meshBasicMaterial map={tex || undefined} color={tex ? "#ffffff" : "#0b1026"} toneMapped={false} />
       </mesh>
       <mesh position={[0, 0.58, 0.03]}><boxGeometry args={[1.28, 0.08, 0.06]} /><meshStandardMaterial color="#e8e0cf" roughness={0.6} /></mesh>
       <mesh position={[0, -0.58, 0.03]}><boxGeometry args={[1.28, 0.08, 0.06]} /><meshStandardMaterial color="#e8e0cf" roughness={0.6} /></mesh>
@@ -328,6 +333,8 @@ function Mug() {
 // ==========================================
 function PosterPlane({ x, url, title }: any) {
   const [tex, setTex] = useState<THREE.Texture | null>(null);
+  const texRef = useRef<THREE.Texture | null>(null);
+  useEffect(() => () => { texRef.current?.dispose(); }, []);
   useEffect(() => {
     let alive = true;
     const run = async () => {
@@ -359,6 +366,9 @@ function PosterPlane({ x, url, title }: any) {
         const t = new THREE.CanvasTexture(c);
         t.colorSpace = THREE.SRGBColorSpace;
         t.needsUpdate = true;
+        if (!alive) { t.dispose(); return; }
+        texRef.current?.dispose();
+        texRef.current = t;
         setTex(t);
       } catch {
         if (alive) setTex(fallbackPoster(title || "MOVIE"));
@@ -429,6 +439,7 @@ function Cartridge({ item, position, onToggle, stamp }: any) {
   }, [item.posterPath, item.title]);
   useEffect(() => () => { label?.dispose(); }, [label]);
   useEffect(() => () => { grayLabel?.dispose(); }, [grayLabel]);
+  useEffect(() => () => { document.body.style.cursor = "auto"; }, []);
   useFrame((_, dt) => {
     if (!g.current) return;
     g.current.position.x = THREE.MathUtils.damp(g.current.position.x, base.x + (hover ? 0.24 : 0), 10, dt);
@@ -524,6 +535,7 @@ function BoardPaper({ plat, pos, tilt, rank, onOpen }: any) {
   const [hover, setHover] = useState(false);
   const g = useRef<THREE.Group>(null);
   const front = useMemo(() => paperTexture(rank, plat.provider, plat.count, Math.round(plat.totalMinutes / 60)), [plat, rank]);
+  useEffect(() => () => { document.body.style.cursor = "auto"; }, []);
   useFrame((_, dt) => {
     if (!g.current) return;
     const s = THREE.MathUtils.damp(g.current.scale.x, hover ? 1.1 : 1, 10, dt);

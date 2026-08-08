@@ -37,7 +37,11 @@ export default function RoomPage() {
   const [progress, setProgress] = useState(0);
   const scrollRef = useRef(0);
   const [fisheye, setFisheye] = useState<any>(null);
-  useEffect(() => { setFisheye(new FisheyeEffect()); }, []);
+  useEffect(() => {
+    const fx = new FisheyeEffect();
+    setFisheye(fx);
+    return () => { try { fx.dispose(); } catch {} };
+  }, []);
   const teleportRef = useRef<any>({ active: false, t: 1 });
   const computing = useRef(false);
   const tvBoxRef = useRef<HTMLDivElement | null>(null);

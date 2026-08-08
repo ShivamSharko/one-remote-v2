@@ -356,7 +356,7 @@ export default function RetroTVScreen() {
 
       setTimeout(() => {
         setRankedPlatforms(rankedArray);
-        try { window.history.pushState(null, "", "#results"); } catch(e) {}
+        try { if (window.location.hash !== "#results") window.history.pushState(null, "", "#results"); } catch(e) {}
         setAppState("result");
       }, 1500);
 
