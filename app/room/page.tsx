@@ -109,7 +109,7 @@ export default function RoomPage() {
 
   const save = (list: any[]) => { setWatchlist(list); try { localStorage.setItem("retro-watchlist", JSON.stringify(list)); } catch (e) {} };
   const onAdd = (item: any) => {
-    if (watchlist.some((w) => w.id === item.id)) return;
+    if (watchlist.some((w) => w.id === item.id && w.mediaType === item.media_type)) return;
     const rd = item.release_date || item.first_air_date || "";
     save([...watchlist, { id: item.id, title: item.title || item.name, mediaType: item.media_type, posterPath: item.poster_path, year: rd ? rd.substring(0, 4) : "Unknown", completed: false }]);
   };

@@ -233,7 +233,7 @@ export default function RetroTVScreen() {
     const releaseDate = item.release_date || item.first_air_date || "";
     const year = releaseDate ? releaseDate.substring(0, 4) : "Unknown";
     
-    if (watchlist.some((w) => w.id === item.id)) return;
+    if (watchlist.some((w) => w.id === item.id && w.mediaType === item.media_type)) return;
 
     const updatedList = [
       ...watchlist,
