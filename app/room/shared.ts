@@ -7,11 +7,11 @@ export const IMG = "https://image.tmdb.org/t/p/w200";
 export const IMG_SMALL = "https://image.tmdb.org/t/p/w92";
 
 export const COUNTRIES = [
-  { code: "US", name: "🇺🇸 UNITED STATES" },
-  { code: "GB", name: "🇬 UNITED KINGDOM" },
-  { code: "CA", name: "🇨🇦 CANADA" },
-  { code: "IN", name: "🇮 INDIA" },
-  { code: "AU", name: "🇦 AUSTRALIA" },
+  { code: "US", name: "\u{1F1FA}\u{1F1F8} UNITED STATES" },
+  { code: "GB", name: "\u{1F1EC}\u{1F1E7} UNITED KINGDOM" },
+  { code: "CA", name: "\u{1F1E8}\u{1F1E6} CANADA" },
+  { code: "IN", name: "\u{1F1EE}\u{1F1F3} INDIA" },
+  { code: "AU", name: "\u{1F1E6}\u{1F1FA} AUSTRALIA" },
 ];
 
 export const PLATFORM_URLS: Record<string, string> = {
